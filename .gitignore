@@ -22,3 +22,7 @@
 *.xlsx
 *.pptx
 *.docx
+
+# some tmp files
+__pycache__/
+*.pyc
