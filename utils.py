@@ -17,6 +17,38 @@ def exception(caller: typing.Callable, inp: typing.Any, res: typing.Any) -> bool
     return True
 
 
+def untar(
+        src: str,
+        dst: str
+) -> None:
+    """ 解压缩文件
+    :param src: 压缩文件所在位置
+    :param dst: 解压缩后的文件所在位置
+    :return: None
+    """
+    import tarfile
+
+    with tarfile.open(src) as tar:
+        names = tar.getnames()
+        for name in names:
+            if name.endswith('.mmdb'):
+                tar.extract(name, path=dst)
+            else:
+                pass
+
+
+def unzip(
+        src: str,
+        dst: str
+) -> None:
+    """ 解压缩文件
+    :param src: 压缩文件所在位置
+    :param dst: 解压缩后的文件所在位置
+    :return: None
+    """
+    pass
+
+
 def download_url_to_file(
         url: str,
         dst: str,

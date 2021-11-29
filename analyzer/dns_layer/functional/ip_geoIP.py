@@ -5,7 +5,7 @@ import os
 import time
 from typing import List, Union, Tuple
 
-from utils import download_url_to_file
+from utils import download_url_to_file, untar
 
 _UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
       'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
@@ -18,26 +18,6 @@ URLs = dict(
     country=f'{_BASE_URL}?edition_id=GeoLite2-Country&license_key={_LICENSE_KEY}&suffix=tar.gz'
 )
 SHA256 = {k: v + '.sha256' for k, v in URLs.items()}
-
-
-def untar(
-        src: str,
-        dst: str
-) -> None:
-    """ 解压缩文件
-    :param src: 压缩文件所在位置
-    :param dst: 解压缩后的文件所在位置
-    :return: None
-    """
-    import tarfile
-
-    with tarfile.open(src) as tar:
-        names = tar.getnames()
-        for name in names:
-            if name.endswith('.mmdb'):
-                tar.extract(name, path=dst)
-            else:
-                pass
 
 
 def download_mmdb(
