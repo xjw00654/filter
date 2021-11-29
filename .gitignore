@@ -1,0 +1,24 @@
+# IDE project folders
+.idea
+.vscode
+
+# some model files
+*.pth
+*.pb
+*.metadata
+*.caffemodel
+
+# some compressed files
+*.tar.gz
+*.tar.bz
+*.tar
+*.zip
+*.rar
+
+# some data files
+*.csv
+*.bin
+*.data
+*.xlsx
+*.pptx
+*.docx
