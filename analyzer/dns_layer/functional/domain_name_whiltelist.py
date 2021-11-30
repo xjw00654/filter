@@ -155,5 +155,6 @@ def generate_whitelist_domain_names(
         'TLD_except': list(set([e.split('.')[:-1] for e in domain_names if '.' in e]))
     }
 
-    if __name__ == '__main__':
-        print(generate_whitelist_domain_names(False))
+
+if __name__ == '__main__':
+    print(generate_whitelist_domain_names(False))
