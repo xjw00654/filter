@@ -43,7 +43,9 @@ def download_whitelist(
         top1m: bool,
         v2ray: bool,
 ) -> list:
-    """ 根据链接下载city、country、asn号所存储的数据库文件
+    """
+    根据链接下载city、country、asn号所存储的数据库文件
+
     :param name_data_type: 所要下载的数据库文件类型，asn、county、city，或是以list的形式给出多个
     :param time_strap: 时间戳，文件保存会以时间戳的形式创建保存在文件夹
     :param v2ray: 是否要下载v2ray数据
@@ -98,7 +100,9 @@ def generate_whitelist_domain_names(
         download_new_rules_file: bool = True,
         force: bool = False
 ) -> dict:
-    """ 生成域名白名单，包含v2ray-rules以及alexa-1m历史排名数据
+    """
+    生成域名白名单，包含v2ray-rules以及alexa-1m历史排名数据
+
     :param download_new_rules_file: 是否要下载新的域名白名单规则数据
     :param force: 是否强制更新，否则一天默认距离上一次下载24小时候才允许更新
     :return: 字典，字典三个KV为TLD,TLD_except以及DN，分别代表顶级域名列表（去重）、去除顶级域名后的域名（去重）以及完整域名列表

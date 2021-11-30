@@ -21,7 +21,9 @@ def untar(
         src: str,
         dst: str
 ) -> None:
-    """ 解压缩文件
+    """
+    解压缩文件
+
     :param src: 压缩文件所在位置
     :param dst: 解压缩后的文件所在位置
     :return: None
@@ -41,7 +43,9 @@ def unzip(
         src: str,
         dst: str
 ) -> None:
-    """ 解压缩文件
+    """
+    解压缩文件
+
     :param src: 压缩文件所在位置
     :param dst: 解压缩后的文件所在位置
     :return: None
@@ -60,7 +64,9 @@ def download_url_to_file(
         progress: bool = True,
         user_agent: str = 'DNS-FILTER'
 ) -> None:
-    """ 内容下载模块，会先将文件下载到临时文件内，确认下载正常后移动数据到指定目录内
+    """
+    内容下载模块，会先将文件下载到临时文件内，确认下载正常后移动数据到指定目录内
+
     :param url: 内容的下载链接
     :param dst: 下载后保存的位置
     :param hash_prefix: 下载文件的哈希值

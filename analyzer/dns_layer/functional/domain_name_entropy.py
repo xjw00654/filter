@@ -14,7 +14,9 @@ def cal_entropy_batch(
         do_length_normalization: bool = False,
         except_dot: bool = False
 ) -> list:
-    """ 计算一个批次中所有域名的熵值
+    """
+    计算一个批次中所有域名的熵值
+
     :param domain_name_batch: 一批次域名数据，需要一个list或者tuple
     :param do_length_normalization: 是否需要做域名长度归一化
     :param except_dot: 是否需要将域名中的'.'纳入熵值计算
@@ -36,7 +38,9 @@ def cal_entropy_group(
         do_length_normalization: bool = False,
         except_dot: bool = False
 ) -> float:
-    """ 对于整组的域名进行熵值计算，返回一个整体的熵值
+    """
+    对于整组的域名进行熵值计算，返回一个整体的熵值
+
     :param domain_name_group: 域名组合，需要一个list或者tuple，或者是已经整合成一个的str[不需要使用间隔符]
     :param do_length_normalization: 是否需要做域名长度归一化
     :param except_dot: 是否需要将域名中的'.'纳入熵值计算
@@ -51,7 +55,9 @@ def cal_entropy_group(
 
 
 def cal_entropy(domain_name: str, do_length_normalization: bool = False, except_dot: bool = False) -> float:
-    """ 计算单个域名熵值
+    """
+    计算单个域名熵值
+
     :param domain_name: 给定的单个域名
     :param do_length_normalization: 是否需要做域名长度归一化
     :param except_dot: 是否需要将域名中的'.'纳入熵值计算

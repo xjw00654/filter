@@ -9,7 +9,9 @@ def domain_name_seperator(
         sep: str = '.',
         return_struct: bool = False
 ) -> Union[List[str], Dict[int, str]]:
-    """ 给定域名返回分隔后的域名，sep为分隔符号，默认为'.'
+    """
+    给定域名返回分隔后的域名，sep为分隔符号，默认为'.'
+
     :param domain_name:
     :param sep: 域名的实际分隔符号，如'a.b.c.d'，使用sep='.'分隔，会得到['a', 'b', 'c', 'd']
     :param return_struct: 是否需要按照顶级、次顶级... 的形式以字典给出结果，其中字典的KV顺序为1，2...
