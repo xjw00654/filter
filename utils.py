@@ -46,7 +46,11 @@ def unzip(
     :param dst: 解压缩后的文件所在位置
     :return: None
     """
-    pass
+    import zipfile
+
+    with zipfile.ZipFile(src, 'r') as zf:
+        for name in zf.namelist():
+            zf.extract(name, dst)
 
 
 def download_url_to_file(
