@@ -75,7 +75,7 @@ def download_mmdb(
         else:
             print('正在删除压缩文件...')
             os.remove(f'{dst}/{_name}')  # 未发生错误，删除压缩文件
-            os.remove(f'{dst}/{mmdb}.sha256')  # 未发生错误，删除压缩文件
+            os.remove(f'{dst}/{mmdb}.sha256')  # 未发生错误，删除哈希文件
     return dst
 
 
