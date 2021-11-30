@@ -3,6 +3,7 @@
 
 import os
 import time
+from shutil import rmtree
 from typing import List, Union, Tuple
 
 from utils import download_url_to_file, untar
@@ -111,7 +112,11 @@ class Client:
 
         import geoip2.database
 
-        date = os.listdir(_folder)[0].split('_')[-1]
+        try:
+            date = os.listdir(_folder)[0].split('_')[-1]
+        except Exception as e:
+            rmtree(_folder)
+            raise Exception('文件下载错误，请重新运行。')
         self.city_reader = geoip2.database.Reader(f"{_folder}/GeoLite2-City_{date}/GeoLite2-City.mmdb")
         self.asn_reader = geoip2.database.Reader(f"{_folder}/GeoLite2-ASN_{date}/GeoLite2-ASN.mmdb")
         self.country_reader = geoip2.database.Reader(f"{_folder}/GeoLite2-Country_{date}/GeoLite2-Country.mmdb")
