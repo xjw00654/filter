@@ -129,7 +129,7 @@ class Client:
             ip = [ip]
         for elem in ip:
             try:
-                response = self.country_reader.asn(elem)
+                response = self.asn_reader.asn(elem)
                 res.append({
                     'ip': elem,
                     'asn': response.autonomous_system_number,
