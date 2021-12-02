@@ -56,8 +56,8 @@ def pcap_same_src_ip(
     for ip_idx, info in tqdm(ip_pkgs_info.items()):
         Q, R = info['Q'], info['R']
 
-        Q_id_index = set([e['id'] for e in Q])
-        R_id_index = set([e['id'] for e in R])
+        Q_id_index = [e['id'] for e in Q]
+        R_id_index = [e['id'] for e in R]
 
         pair_id_index = set(Q_id_index) & set(R_id_index)
         unpair_Q_id_index = (set(Q_id_index) | set(R_id_index)) - R_id_index
