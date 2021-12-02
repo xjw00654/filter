@@ -60,8 +60,8 @@ def pcap_same_src_ip(
         R_id_index = [e['id'] for e in R]
 
         pair_id_index = set(Q_id_index) & set(R_id_index)
-        unpair_Q_id_index = (set(Q_id_index) | set(R_id_index)) - R_id_index
-        unpair_R_id_index = (set(Q_id_index) | set(R_id_index)) - Q_id_index
+        unpair_Q_id_index = (set(Q_id_index) | set(R_id_index)) - set(R_id_index)
+        unpair_R_id_index = (set(Q_id_index) | set(R_id_index)) - set(Q_id_index)
 
         pair, unpair = {}, {}
         for _id in pair_id_index:
