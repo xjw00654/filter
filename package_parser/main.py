@@ -36,7 +36,7 @@ def pcap_parser_generator(pcap_path):
             except:
                 continue  # 不是DNS类型或者出错
             else:
-                yield eth, ip, udp, dns
+                yield time_strap, (eth, ip, udp, dns)
     print(f'该{pcap_path}文件，共包含{n}条数据')
 
 

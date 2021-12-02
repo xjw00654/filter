@@ -28,7 +28,7 @@ def pcap_A_record_statistics(
 
     i = 0
     domain_ip_map = defaultdict(set)
-    for i, (_, ip, _, dns) in enumerate(pcap):
+    for i, (ts, (_, ip, _, dns)) in enumerate(pcap):
         if dns.qr != dpkt.dns.DNS_R:  # 请求不要，只拿响应数据
             continue
         if len(dns.an) < 1:  # 回答数据不足的，也直接不管了
