@@ -2,7 +2,7 @@
 # author: jwxie - xiejiawei000@gmail.com
 import socket
 
-import dpkt.dns
+from tqdm import tqdm
 
 from package_parser import pcap_parser_generator
 
@@ -37,22 +37,45 @@ def pcap_same_src_ip(
     """
 
     ip_pkgs_info = {}
-    for i, (ts, (_, ip, _, dns)) in enumerate(pcap):
-        if dns.qr == dpkt.dns.DNS_Q:
-            _d = ip_pkgs_info.get(socket.inet_ntoa(ip.src), {'Q': [], 'R': [], })
-            _d['Q'].append(_construct_element(ip, dns))
-            ip_pkgs_info[socket.inet_ntoa(ip.src)] = _d
-        elif dns.qr == dpkt.dns.DNS_R:
-            _d = ip_pkgs_info.get(socket.inet_ntoa(ip.dst), {'Q': [], 'R': [], })
-            _d['R'].append(_construct_element(ip, dns))
-            ip_pkgs_info[socket.inet_ntoa(ip.dst)] = _d
-        else:
-            print('报文类型错误，仅支持查询、响应类型的报文')
+    # for i, (ts, (_, ip, _, dns)) in enumerate(pcap):
+    #     if dns.qr == dpkt.dns.DNS_Q:
+    #         _d = ip_pkgs_info.get(socket.inet_ntoa(ip.src), {'Q': [], 'R': [], })
+    #         _d['Q'].append(_construct_element(ip, dns))
+    #         ip_pkgs_info[socket.inet_ntoa(ip.src)] = _d
+    #     elif dns.qr == dpkt.dns.DNS_R:
+    #         _d = ip_pkgs_info.get(socket.inet_ntoa(ip.dst), {'Q': [], 'R': [], })
+    #         _d['R'].append(_construct_element(ip, dns))
+    #         ip_pkgs_info[socket.inet_ntoa(ip.dst)] = _d
+    #     else:
+    #         print('报文类型错误，仅支持查询、响应类型的报文')
+    import numpy as np
+    ip_pkgs_info = np.load('a.npy', allow_pickle=True).tolist()
 
     # 后处理一下，统计数据
-    for ip_idx, info in ip_pkgs_info.items():
+    _pair_unpair_data = {}
+    for ip_idx, info in tqdm(ip_pkgs_info.items()):
         Q, R = info['Q'], info['R']
 
+        Q_id_index = set([e['id'] for e in Q])
+        R_id_index = set([e['id'] for e in R])
+
+        pair_id_index = set(Q_id_index) & set(R_id_index)
+        unpair_Q_id_index = (set(Q_id_index) | set(R_id_index)) - R_id_index
+        unpair_R_id_index = (set(Q_id_index) | set(R_id_index)) - Q_id_index
+
+        pair, unpair = {}, {}
+        for _id in pair_id_index:
+            pair[_id] = {
+                'Q': [elem for _idx, elem in zip(Q_id_index, Q) if _idx == _id],
+                'R': [elem for _idx, elem in zip(R_id_index, R) if _idx == _id]
+            }
+        for _id in unpair_Q_id_index:
+            unpair[_id] = {'Q': [elem for _idx, elem in zip(Q_id_index, Q) if _idx == _id], }
+        for _id in unpair_R_id_index:
+            unpair[_id] = {'R': [elem for _idx, elem in zip(R_id_index, R) if _idx == _id], }
+
+        ip_pkgs_info[ip_idx]['pair'] = pair
+        ip_pkgs_info[ip_idx]['unpair'] = unpair
     return a
 
 
