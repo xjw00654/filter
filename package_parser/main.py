@@ -1,11 +1,20 @@
 # coding: utf-8
 # author: jwxie - xiejiawei000@gmail.com
+from typing import Generator
 
 import dpkt
 from tqdm import tqdm
 
 
-def pcap_parser_generator(pcap_path):
+def pcap_parser_generator(
+        pcap_path: str
+) -> Generator:
+    """
+    pcap 包解析生成器
+
+    :param pcap_path: pcap包文件所在目录
+    :return:  DNS层数据生成器对象，格式为：时间戳，(eth层对象, ip层对象, udp层对象, dns层对象)
+    """
     f = open(pcap_path, 'rb')
     pcap_reader = dpkt.pcap.Reader(f)
 
@@ -40,7 +49,15 @@ def pcap_parser_generator(pcap_path):
     print(f'该{pcap_path}文件，共包含{n}条数据')
 
 
-def pcap_parser(pcap_path):
+def pcap_parser(
+        pcap_path: str
+) -> list:
+    """
+    pcap 包解析生成器
+
+    :param pcap_path: pcap包文件所在目录
+    :return: 列表，包含pcap包内所有DNS层数据，格式为：[时间戳，(eth层对象, ip层对象, udp层对象, dns层对象), ...]
+    """
     f = open(pcap_path, 'rb')
     pcap_reader = dpkt.pcap.Reader(f)
 
@@ -63,5 +80,5 @@ def pcap_parser(pcap_path):
             except:
                 continue  # 不是DNS类型或者出错
             else:
-                packs.append((eth, ip, udp, dns))
+                packs.append((time_strap, (eth, ip, udp, dns)))
     return packs
