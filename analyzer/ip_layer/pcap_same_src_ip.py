@@ -16,9 +16,10 @@ RCODE_DICT: dict[int, str] = {
 }
 
 
-def _construct_element(_ip, _dns):
+def _construct_element(ts, _ip, _dns):
     return {
         'id': _dns.id,
+        'timestamp': ts,
         'ip_len': _ip.len,
         'dns_rcode': _dns.rcode,
         'dns_rcode_msg': RCODE_DICT[_dns.rcode],
@@ -42,11 +43,11 @@ def pcap_same_src_ip(
     for i, (ts, (_, ip, _, dns)) in enumerate(pcap):
         if dns.qr == dpkt.dns.DNS_Q:
             _d = ip_pkgs_info.get(socket.inet_ntoa(ip.src), {'Q': [], 'R': [], })
-            _d['Q'].append(_construct_element(ip, dns))
+            _d['Q'].append(_construct_element(ts, ip, dns))
             ip_pkgs_info[socket.inet_ntoa(ip.src)] = _d
         elif dns.qr == dpkt.dns.DNS_R:
             _d = ip_pkgs_info.get(socket.inet_ntoa(ip.dst), {'Q': [], 'R': [], })
-            _d['R'].append(_construct_element(ip, dns))
+            _d['R'].append(_construct_element(ts, ip, dns))
             ip_pkgs_info[socket.inet_ntoa(ip.dst)] = _d
         else:
             print('报文类型错误，仅支持查询、响应类型的报文')
