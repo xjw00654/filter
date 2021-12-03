@@ -10,7 +10,7 @@ import requests
 # 请前往http://my.chinaz.com/ChinazAPI/Statistics/AccessStatistics开通自己的key，免费100条
 WHOIS_API_KEY = '8582b25b14a54ac18550ad3b61fd3df7'
 API_URL = f'https://apidatav2.chinaz.com/single/whois?key={WHOIS_API_KEY}&domain='
-ASYNC_API_STATUS_URL = 'https://apidatav2.chinaz.com/batch/apiresut'
+ASYNC_API_STATUS_URL = 'https://apidatav2.chinaz.com/batch/apiresut?taskid='
 
 _RE = re.compile("^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$")
 
@@ -75,6 +75,38 @@ def _api_query_batch_async(
         return results
 
 
+def _api_query_batch_async_get_results(
+        task_id: list,
+        ua: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                  'AppleWebKit/537.36 (KHTML, like Gecko) '
+                  'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
+):
+    results = {}
+
+    while True:
+        need_query_results = [e for e in task_id if results.get(e) is None]
+        if need_query_results:
+            for t_id in need_query_results:
+                try:
+                    task_result_response = requests.get(ASYNC_API_STATUS_URL + t_id, headers={'User-Agent': ua})
+                    if not task_result_response:
+                        raise Exception('请求错误，网络错误或者请求不成功')
+                    elif task_result_response.json()['StateCode'] != 1:
+                        continue  # 可能这时候没处理完？
+                    else:
+                        response_content = task_result_response.json()
+                        if response_content['Result']['TaskID'] != t_id:
+                            raise Exception(f"响应任务ID匹配一场，请求任务id：{t_id}，"
+                                            f"响应数据的任务id：{response_content['Result']['TaskID']}")
+
+                        results[t_id] = response_content['Result']['Data']
+                except Exception as e:
+                    results[t_id] = str(e)
+            time.sleep(1)
+        else:
+            break
+
+
 def _api_query(
         api_url: str,
         domain_name: str,
@@ -112,13 +144,16 @@ def whois_api_query_batch_async(
     :param _n_per_query: 每次请求的域名数量，最大不超过50，默认为5
     :return: 正确返回字典，错误返回None
     """
-    return _api_query_batch_async(
-        API_URL.replace('single', 'batch'),
-        domain_names,
-        _n_per_query=5,
-        ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
-           'AppleWebKit/537.36 (KHTML, like Gecko) ' \
-           'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
+    a = 10
+    return _api_query_batch_async_get_results(
+        list(_api_query_batch_async(
+            API_URL.replace('single', 'batch'),
+            domain_names,
+            _n_per_query=2,
+            ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
+               'AppleWebKit/537.36 (KHTML, like Gecko) ' \
+               'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
+        ).keys())
     )
 
 
@@ -141,4 +176,4 @@ def whois_api_query(
 
 
 if __name__ == '__main__':
-    print(whois_api_query_batch_async(['jwxie.com', ]))
+    print(whois_api_query_batch_async(['jwxie.com', 'cyyan.cn'] * 4 + ['github.com']))
