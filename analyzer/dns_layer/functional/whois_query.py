@@ -23,7 +23,7 @@ def _is_valid_domain_name(
 
 def _api_query_batch_async(
         api_url: str,
-        domain_names: str,
+        domain_names: list,
         _n_per_query: int = 5,
         ua: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                   'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -32,8 +32,8 @@ def _api_query_batch_async(
     """
     异步任务分发，将给定的域名以batch的形式异步提交到API接口内，返回任务的ID号
 
-    :param api_url:
-    :param domain_names:
+    :param api_url: 请求url地址
+    :param domain_names: 提交的域名列表
     :param _n_per_query: 每次请求的数量，要求小于等于50
     :param ua: UA值
     :return: 字典形式的返回，K为API接口返回的任务id号，V为该任务内的请求域名数量
