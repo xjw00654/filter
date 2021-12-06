@@ -10,7 +10,7 @@ import requests
 # 请前往http://my.chinaz.com/ChinazAPI/Statistics/AccessStatistics开通自己的key，免费100条
 WHOIS_API_KEY = '8582b25b14a54ac18550ad3b61fd3df7'
 API_URL = f'https://apidatav2.chinaz.com/single/whois?key={WHOIS_API_KEY}&domain='
-ASYNC_API_STATUS_URL = 'https://apidatav2.chinaz.com/batch/apiresut?taskid='
+ASYNC_API_STATUS_URL = 'https://apidatav2.chinaz.com/batch/apiresut'
 
 _RE = re.compile("^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$")
 
@@ -49,27 +49,26 @@ def _api_query_batch_async(
         raise Exception('参数错误，每次请求的数量不能超过50个域名')
 
     results = {}
-    for idx, i in enumerate(range(0, len(domain_names), _n_per_query)):
+    for idx, i in enumerate(range(0, (len(domain_names) // _n_per_query) + 1)):
         dn_no_combine = domain_names[i * _n_per_query: min((i + 1) * _n_per_query, len(domain_names))]
         dn = "|".join(dn_no_combine)
 
         try:
-            task_id_response = requests.get(api_url + dn, headers={'User-Agent': ua})
+            task_id_response = requests.post(api_url + dn, headers={'User-Agent': ua})
             if not task_id_response or task_id_response.json()['StateCode'] != 1:
                 raise Exception('请求错误，网络错误或者请求不成功')
             else:
                 response_content = task_id_response.json()
                 results[response_content['TaskID']] = {'Total': response_content['Total'], }
-        except Exception as e:
-            print(e)
+        except Exception as err:
             with open(f'whois_batch_query_failed_domain_names_{task_stamp}.txt', 'a+') as fp:
                 for _e in [e for e in dn.split('|') if e]:
                     fp.write(_e + '\n')
-            print(f"第{idx}组任务的{len([e for e in dn.split('|') if e])}发放失败，查询失败的域名会记录在"
+            print(f"第{idx}组任务的{len([e for e in dn.split('|') if e])}发放失败，{err}，查询失败的域名会记录在"
                   f"{os.path.abspath('./whois_batch_query_failed_domain_names_[当前时间].txt')}文件内")
 
     print(f'所有的请求结束，当前的所有任务ID号为:{results}')
-    if len(results.keys()):
+    if not len(results.keys()):
         return None
     else:
         return results
@@ -83,12 +82,17 @@ def _api_query_batch_async_get_results(
 ):
     results = {}
 
+    print('正在根据任务ID，轮询查询结果接口，查询完成结果将返回...')
     while True:
         need_query_results = [e for e in task_id if results.get(e) is None]
         if need_query_results:
             for t_id in need_query_results:
                 try:
-                    task_result_response = requests.get(ASYNC_API_STATUS_URL + t_id, headers={'User-Agent': ua})
+                    task_result_response = requests.post(
+                        ASYNC_API_STATUS_URL,
+                        data={'taskid': t_id},
+                        headers={'User-Agent': ua}
+                    )
                     if not task_result_response:
                         raise Exception('请求错误，网络错误或者请求不成功')
                     elif task_result_response.json()['StateCode'] != 1:
@@ -105,6 +109,7 @@ def _api_query_batch_async_get_results(
             time.sleep(1)
         else:
             break
+    return results
 
 
 def _api_query(
@@ -144,10 +149,9 @@ def whois_api_query_batch_async(
     :param _n_per_query: 每次请求的域名数量，最大不超过50，默认为5
     :return: 正确返回字典，错误返回None
     """
-    a = 10
     return _api_query_batch_async_get_results(
         list(_api_query_batch_async(
-            API_URL.replace('single', 'batch'),
+            API_URL.replace('single', 'batch').replace('domain', 'domains'),
             domain_names,
             _n_per_query=2,
             ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
@@ -176,4 +180,5 @@ def whois_api_query(
 
 
 if __name__ == '__main__':
-    print(whois_api_query_batch_async(['jwxie.com', 'cyyan.cn'] * 4 + ['github.com']))
+    print(whois_api_query_batch_async(['jwxie.com', 'cyyan.cn'] * 2 + ['github.com']))
+    a = 10
