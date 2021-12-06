@@ -149,16 +149,23 @@ def whois_api_query_batch_async(
     :param _n_per_query: 每次请求的域名数量，最大不超过50，默认为5
     :return: 正确返回字典，错误返回None
     """
-    return _api_query_batch_async_get_results(
-        list(_api_query_batch_async(
-            API_URL.replace('single', 'batch').replace('domain', 'domains'),
-            domain_names,
-            _n_per_query=2,
-            ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
-               'AppleWebKit/537.36 (KHTML, like Gecko) ' \
-               'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
-        ).keys())
+    print(f'提供了{len(domain_names)}条待查询域名，正在去重...')
+    domain_names = list(set(domain_names))
+    print(f'去重完毕，共{len(domain_names)}条待查询域名')
+
+    task_ids_dict = _api_query_batch_async(
+        API_URL.replace('single', 'batch').replace('domain', 'domains'),
+        domain_names,
+        _n_per_query=2,
+        ua='Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' \
+           'AppleWebKit/537.36 (KHTML, like Gecko) ' \
+           'Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'
     )
+    results = _api_query_batch_async_get_results(
+        task_id=list(task_ids_dict.keys())
+    )
+
+    return domain_names, results
 
 
 def whois_api_query(
