@@ -14,7 +14,8 @@ def pcap_A_record_statistics(
         *,  # 后面得给爷写完整咯，到底要asn，country还是city
         do_asn_query: bool = False,
         do_city_query: bool = False,
-        do_country_query: bool = False
+        do_country_query: bool = False,
+        do_bgp_prefix_query: bool = False,
 ) -> dict:
     """
     在整个pcap里面找到单个域名的A记录个数，同时支持ASN记录查询
@@ -23,6 +24,7 @@ def pcap_A_record_statistics(
     :param do_asn_query: 是否要进行ASN查询
     :param do_city_query: 是否要进行City查询
     :param do_country_query: 是否要进行Country查询
+    :param do_bgp_prefix_query: 是否要进行BGP前缀查询，默认为False，极度不建议使用True，效率超级超级超级^超级低低低低
     :return: 返回域名A记录数据，字典K为域名(str)，V为字典，其中K为IP，V为TTL集合或是字典，
     """
 
@@ -52,7 +54,9 @@ def pcap_A_record_statistics(
     if do_asn_query or do_country_query or do_city_query:
         print(f'正在初始化geoip2-lite查询客户端...')
         from analyzer.dns_layer.functional.ip_geoIP import Client
+        from analyzer.dns_layer.functional.ip_bgp_query import Client as BGPClient
         client = Client(False)
+        bgp_client = BGPClient()
 
         print(f'初始化完成，正在进行数据查询...')
         for domain_name, IPs in domain_ip_map.items():
@@ -64,6 +68,7 @@ def pcap_A_record_statistics(
                             [e['asn'] for e in client.query_asn(ip)] if isinstance(elem, int)] if do_asn_query else [],
                     'country': client.query_country(ip) if do_country_query else [],
                     'city': client.query_city(ip) if do_city_query else [],
+                    'bgp_prefix': bgp_client.query(ip) if do_bgp_prefix_query else [],
                 }
             domain_ip_map[domain_name] = IPs_add_asn
 
@@ -75,5 +80,11 @@ def pcap_A_record_statistics(
 if __name__ == '__main__':
     pcap = pcap_parser_generator('D:\\Dataset\\botnet\\botnet2014\\ISCX_Botnet-Testing.dns.pcap')
 
-    a = pcap_A_record_statistics(pcap, do_asn_query=True, do_city_query=True, do_country_query=True)
+    a = pcap_A_record_statistics(
+        pcap,
+        do_asn_query=True,
+        do_city_query=True,
+        do_country_query=True,
+        do_bgp_prefix_query=False
+    )
     aa = 10
