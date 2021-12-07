@@ -226,8 +226,8 @@ class Client:
 
     @staticmethod
     def _is_valid_ip(ip: str) -> bool:
-        ipv4_eval_exp = re.compile("(?=(\b|\D))(((\d{1,2})|(1\d{1,2})|(2[0-4]\d)|(25[0-5]))\.){3}"
-                                   "((\d{1,2})|(1\d{1,2})|(2[0-4]\d)|(25[0-5]))(?=(\b|\D))")
+        ipv4_eval_exp = re.compile(
+            "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
         ipv6_eval_exp = re.compile("^([\\da-fA-F]{1,4}:){7}([\\da-fA-F]{1,4})$")
 
         if ipv4_eval_exp.match(ip) or ipv6_eval_exp.match(ip):
@@ -319,5 +319,5 @@ class Client:
 
 if __name__ == "__main__":
     c = Client()
-    r = c.query('baidu.com')
+    r = c.query('216.90.108.31')
     print(r)
