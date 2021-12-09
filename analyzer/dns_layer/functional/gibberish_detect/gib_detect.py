@@ -17,7 +17,7 @@ class Client:
             string: str,
             with_prob: bool = True
     ) -> typing.Union[bool, typing.Tuple[bool, float]]:
-        prob = gib_detect_train.avg_transition_prob(string, model_mat)
+        prob = gib_detect_train.avg_transition_prob(string, self.model_mat)
 
         if with_prob:
             return prob > self.threshold, prob
