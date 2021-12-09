@@ -5,26 +5,27 @@ import math
 import typing
 from collections import Counter
 
+import numpy as np
 from numba import jit
 
 
 @jit
 def cal_entropy_batch(
-        string_batch: typing.Union[typing.List, typing.Tuple],
+        string_batch: typing.Union[typing.List, typing.Tuple, np.ndarray],
         do_length_normalization: bool = False,
         except_dot: bool = False
 ) -> list:
     """
     计算一个批次中所有数据的熵值
 
-    :param string_batch: 一批次字符串数据，需要一个list或者tuple
+    :param string_batch: 一批次字符串数据，需要一个list或者tuple，或者np.ndarray
     :param do_length_normalization: 是否需要做域名长度归一化
     :param except_dot: 是否需要将字符数据中的'.'纳入熵值计算
     :return: 该批次数据中每一个数据的熵值
     """
 
     entropys = []
-    if isinstance(string_batch, list) or isinstance(string_batch, tuple):
+    if isinstance(string_batch, list) or isinstance(string_batch, tuple) or isinstance(string_batch, np.ndarray):
         for _string in string_batch:
             entropys.append(cal_entropy(_string, do_length_normalization, except_dot))
     else:
