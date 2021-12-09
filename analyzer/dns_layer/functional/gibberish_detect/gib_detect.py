@@ -12,7 +12,7 @@ class Client:
         self.threshold = model_data['threshold']
         self.model_mat = model_data['mat']
 
-    def detect(
+    def query(
             self,
             string: str,
             with_prob: bool = True
