@@ -1,5 +1,6 @@
 # coding: utf-8
 # author: jwxie - xiejiawei000@gmail.com
+import itertools
 import os
 import typing
 
@@ -16,9 +17,17 @@ def _get_specific_ext_files(path: str, ext: str):
     return file_list
 
 
-def get_whitelist_from_txt():
-    top1m_path = '../../../static_files/top1m'
-    v2ray_rules_path = '../../../static_files/v2ray-rules'
+def get_whitelist_from_txt(
+        *,
+        use_v2ray: bool = True,
+        max_domain_length: int = 4,
+) -> list:
+    top1m_path = 'static_files/top1m'
+    v2ray_rules_path = 'static_files/v2ray-rules'
+    if os.path.abspath('.').endswith('functional'):
+        top1m_path = '../../../' + top1m_path
+        v2ray_rules_path = '../../../' + v2ray_rules_path
+
     top1m_txt = [float(e) for e in os.listdir(top1m_path)]
     v2ray_rules_txt = [float(e) for e in os.listdir(v2ray_rules_path)]
     if len(top1m_txt) == 0:
@@ -27,16 +36,42 @@ def get_whitelist_from_txt():
         top1m_path = os.path.join(top1m_path, str(top1m_txt[-1]))
         v2ray_rules_path = os.path.join(v2ray_rules_path, str(v2ray_rules_txt[-1]))
 
-    top1m_txt_list = _get_specific_ext_files(top1m_path, ".txt")
+    top1m_txt_list = _get_specific_ext_files(top1m_path, ".csv")
     v2ray_rules_txt_list = _get_specific_ext_files(v2ray_rules_path, '.txt')
 
-    whitelist_txt_list = top1m_txt_list + v2ray_rules_txt_list
+    whitelist_txt_list = top1m_txt_list
+    if use_v2ray:
+        whitelist_txt_list += v2ray_rules_txt_list
 
     wl = []
     for txt in whitelist_txt_list:
-        wl += [elem for elem in [e.strip().replace('full:', '') for e in open(txt, 'r', encoding='utf-8').readlines()
-                                 if not e.startswith('regexp:')] if len(elem) >= 4]
-    return list(set(wl))
+        if 'top' in txt:
+            wl += [elem for elem in
+                   [e.strip().split(',')[1] for e in open(txt, 'r', encoding='utf-8').readlines()]
+                   if len(elem) >= max_domain_length]
+        else:
+            pass
+            # wl += [elem for elem in
+            #        [e.strip().replace('full:', '') for e in open(txt, 'r', encoding='utf-8').readlines()
+            #         if not e.startswith('regexp:')] if len(elem) >= max_domain_length]
+    return sorted(list(set(wl)))
+
+
+def get_dga_from_txt(
+        *,
+        max_domain_length: int = 4,
+) -> typing.Tuple[typing.Iterable, typing.Iterable]:
+    max_domain_length = max(max_domain_length, 0)
+
+    dga_txt_path = 'static_files/dga.txt'
+    if os.path.abspath('.').endswith('functional'):
+        dga_txt_path = '../../../' + dga_txt_path
+    bl = [elem for elem in
+          [e.strip().split('\t')[:2] for e in open(dga_txt_path, 'r', encoding='utf-8').readlines()
+           if not e.startswith('#') and e != "" and e[0] != "\n"]  # get content from txt file
+          if len(elem[1]) >= max_domain_length]  # domain name length filter
+    return itertools.islice(itertools.chain.from_iterable(bl), 1, None, 2), \
+           itertools.islice(itertools.chain.from_iterable(bl), 0, None, 2)
 
 
 def get_features(
@@ -61,6 +96,52 @@ def get_features(
     return result
 
 
+def cal_vowel(
+        data: list
+) -> list:
+    vowel_re = re.compile('[aeiou]')
+    return [len(vowel_re.findall(e)) / len(e) for e in data]
+
+
+def cal_ngram(
+        data: list,
+        n: int
+):
+    ngram_vectorizer = CountVectorizer(analyzer='char', ngram_range=(n, n))
+    ngram_vectorizer.fit(bl.tolist())
+    vocab = ngram_vectorizer.vocabulary_
+
+    vocab_sum = sum(vocab.values())
+    ngram_freq_avg = [np.mean([vocab[elem.lower()]
+                               for elem in re.findall(".{" + str(n) + "}", e)]).tolist() for e in bl]
+    ngram_freq_std = [np.std([vocab[elem.lower()]
+                              for elem in re.findall(".{" + str(n) + "}", e)]).tolist() for e in bl]
+
+
+def cal_freq(
+        data: list
+) -> list:
+    digits_re = re.compile('\d')
+    non_vowel_re = re.compile('[^aeiou.]')
+    repeat_re = re.compile('(.)\\1{1,64}')
+    continuous_re = re.compile('([a-zA-Z])(\\1{1,63})|(\d{2,64})')
+    continuous_non_vowel_re = re.compile('[^aeiou.]{2,63}')
+
+    # digit = [len(digits_re.findall(e)) / len(e) for e in data]
+    # non_vowel = [len(non_vowel_re.findall(e)) / len(e) for e in data]
+    # repeat = [len(set(repeat_re.findall(e))) / len(e) for e in data]
+    # continuous = [sum([sum(map(len, s)) for s in continuous_re.findall(e)]) / len(e) for e in data]
+    # continuous_non_vowel = [len(sum([s for s in continuous_non_vowel_re.findall(e)])) / len(e) for e in data]
+    result = [[
+        len(digits_re.findall(e)) / len(e),
+        len(non_vowel_re.findall(e)) / len(e),
+        len(set(repeat_re.findall(e))) / len(e),
+        sum([sum(map(len, s)) for s in continuous_re.findall(e)]) / len(e),
+        len(sum([s for s in continuous_non_vowel_re.findall(e)])) / len(e)
+    ] for e in data]
+    return result
+
+
 if __name__ == '__main__':
     import re
     import numpy as np
@@ -70,6 +151,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import seaborn
     from analyzer.dns_layer.functional.entropy import cal_entropy_batch
+    from analyzer.dns_layer.functional.gibberish_detect import Client
 
     wl = np.array(get_whitelist_from_txt())
 
@@ -88,6 +170,16 @@ if __name__ == '__main__':
     data = np.append(bl, wl)
     cls = np.append(cls, np.array(['normal'] * len(wl)))
     assert len(data) == len(label)
+
+    # gibberish-papers
+    gib_client = Client()
+    bl_gib = [gib_client.query(e)[1] for e in bl]
+    wl_gib = [gib_client.query(e)[1] for e in wl]
+
+    plt.close()
+    seaborn.distplot(bl_gib, color='g')
+    seaborn.distplot(wl_gib, color='orange')
+    plt.savefig(f'../../../static_files/gibberish.png')
 
     # vowel-papers
     bl_counter = [len([c for c in e if c.lower() in 'aeiou']) / len(e) for e in bl]
