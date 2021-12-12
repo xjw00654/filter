@@ -12,6 +12,7 @@ from numba import jit
 @jit
 def cal_entropy_batch(
         string_batch: typing.Union[typing.List, typing.Tuple, np.ndarray],
+        *,
         do_length_normalization: bool = False,
         except_dot: bool = False
 ) -> list:
