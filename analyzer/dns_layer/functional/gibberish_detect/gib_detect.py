@@ -1,19 +1,26 @@
 #!/usr/bin/python
 
+import os
 import pickle
 import typing
 
 import numpy as np
+from numba import jit
 
 from . import gib_detect_train
 
 
 class Client:
     def __init__(self):
-        model_data = pickle.load(open('../../../static_files/gib_model.pki', 'rb'))
+        base_path = 'static_files/gib_model.pki'
+        if os.path.abspath('.').endswith('functional'):
+            base_path = '../../../' + base_path
+        model_data = pickle.load(open(base_path, 'rb'))
+
         self.threshold = model_data['thresh']
         self.model_mat = model_data['mat']
 
+    @jit
     def query(
             self,
             string: str,

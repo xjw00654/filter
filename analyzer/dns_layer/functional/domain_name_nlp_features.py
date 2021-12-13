@@ -6,6 +6,7 @@ import re
 import typing
 from collections import Counter
 
+from numba import jit
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 
@@ -96,24 +97,18 @@ def get_features(
     return result
 
 
-def cal_vowel(
-        data: list
-) -> list:
-    vowel_re = re.compile('[aeiou]')
-    return [len(vowel_re.findall(e)) / len(e) for e in data]
-
-
 def cal_ngram(
         *,
         n: int,
         data: list,
-
+        with_vocab_freq: bool,
 ):
     """
     计算ngram特征
 
     :param n: ngram中n
     :param data: 需要计算的数据
+    :param with_vocab_freq: 是否返回频率表
     :return: 数据的ngram频率
     """
     if not isinstance(n, int):
@@ -127,14 +122,18 @@ def cal_ngram(
     vocab = ngram_vectorizer.vocabulary_
 
     ngram_freq = [[data_ct[vocab[elem.lower()]] for elem in re.findall(".{" + str(n) + "}", e)] for e in data]
+    if with_vocab_freq:
+        return ngram_freq, (vocab, data_ngram)
+    else:
+        return ngram_freq
 
-    return ngram_freq
 
-
+@jit
 def cal_freq(
         data: list
 ) -> list:
     digits_re = re.compile('\d')
+    vowel_re = re.compile('[aeiou]')
     non_vowel_re = re.compile('[^aeiou.]')
     repeat_re = re.compile('(.)\\1{1,64}')
     continuous_re = re.compile('([a-zA-Z])(\\1{1,63})|(\d{2,64})')
@@ -147,10 +146,11 @@ def cal_freq(
     # continuous_non_vowel = [len(sum([s for s in continuous_non_vowel_re.findall(e)])) / len(e) for e in data]
     result = [[
         len(digits_re.findall(e)) / len(e),
+        len(vowel_re.findall(e)) / len(e),
         len(non_vowel_re.findall(e)) / len(e),
         len(set(repeat_re.findall(e))) / len(e),
         sum([sum(map(len, s)) for s in continuous_re.findall(e)]) / len(e),
-        len(sum([s for s in continuous_non_vowel_re.findall(e)])) / len(e)
+        sum(map(len, continuous_non_vowel_re.findall(e))) / len(e)
     ] for e in data]
     return result
 
