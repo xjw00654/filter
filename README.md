@@ -1,22 +1,8 @@
-# DNS tunneling tools  
+# DNS 异常审核
 
-## some useful tools
+[![wakatime](https://wakatime.com/badge/github/xjw00654/filter.svg)](https://wakatime.com/badge/github/xjw00654/filter)
 
-- NSTX
-- DNSCat2
-- Iodine
-- TUNS
-- Dns2TCP
-- Heyoka
-- OzymanDNS
-
-## some personal tools
-
-- https://github.com/search?p=2&q=DNS+tunnel+&type=Repositories&utf8=%E2%9C%93
-  - https://github.com/ice-ice/dnstunnel
-  - https://github.com/bigBestWay/dnstunnel
-  - https://github.com/AlexandreFenyo/vpn-over-dns
-
-## some code template for detect dns tunnel
-
-- https://github.com/cisp/DNSTunnelDetectTools/blob/master/DNSTunnelDetect.py
+- 提供了pcap包迭代器。
+- 提供了基于NLP的异常包审核。
+- 提供了基于规则的异常包审核。
+- 为异常特征计算提供了渠道。
