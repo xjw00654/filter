@@ -79,7 +79,7 @@ def sent_data(
     processed = []
     do_continue_times = 0
     while True:
-        files = [e for e in os.listdir(path) if 'wl' not in e]  # 带wl的是有处理完成的
+        files = [e for e in os.listdir(path) if 'wl' not in e and e.endswith('.pcap')]  # 带wl的是有处理完成的
         if len(set(files) - set(processed)) < num_processes + 1:
             time.sleep(10)
             do_continue_times += 1
@@ -184,7 +184,10 @@ def filter_wl(
             cdn_ip_ok_nums = 0
             for an in dns.an:
                 if hasattr(an, 'ip'):
-                    real_ip = socket.inet_ntoa(an.ip)
+                    try:
+                        real_ip = socket.inet_ntoa(an.ip)
+                    except Exception:
+                        continue
                     if pydb_ip(cdnIP=real_ip):
                         cdn_ip_ok_nums += 1
 
