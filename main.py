@@ -1,8 +1,12 @@
 # coding: utf-8
 # author: jwxie - xiejiawei000@gmail.com
 import itertools
+import pickle
 
 import numpy as np
+import torch
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, Dataset
 
 import analyzer.dns_layer.functional as F
 import analyzer.dns_layer.functional.domain_name_nlp_features as nlp
@@ -31,54 +35,47 @@ def dga_analysis():
     return np.hstack([np.stack([rr[0], rr[1], rr[2], rr[3]]).transpose((1, 0)), np.array(rr[4])]), label, sub_label
 
 
-if __name__ == '__main__':
-    # dga_analysis()
+class DS(Dataset):
+    def __init__(self, data, label):
+        self.data = data
+        self.label = label
 
-    import pickle
+    def __getitem__(self, idx):
+        return torch.from_numpy(self.data[idx, :]).float(), \
+               torch.from_numpy(np.array(self.label[idx], dtype=np.int8)).long()
+
+    def __len__(self):
+        return self.data.shape[0]
+
+
+class Model(torch.nn.Module):
+    def __init__(self):
+        super(Model, self).__init__()
+        self.m = torch.nn.ModuleList([
+            torch.nn.Linear(10, 32),
+            torch.nn.Linear(32, 16),
+            torch.nn.Linear(16, 2),
+        ])
+
+    def forward(self, x):
+        for e in self.m:
+            x = e(x)
+        return x
+
+
+if __name__ == '__main__':
+    # data = dga_analysis()
 
     fs = pickle.load(open('fs.pkl', 'rb'))
     lb = pickle.load(open('lb.pkl', 'rb'))
 
-    from sklearn.model_selection import train_test_split
-    import torch
-    from torch.utils.data import DataLoader, Dataset
-
     X_train, X_test, y_train, y_test = train_test_split(fs, lb[:, 0], test_size=0.2, random_state=7010)
-
-
-    class DS(Dataset):
-        def __init__(self, data, label):
-            self.data = data
-            self.label = label
-
-        def __getitem__(self, idx):
-            return torch.from_numpy(self.data[idx, :]).float(), \
-                   torch.from_numpy(np.array(self.label[idx], dtype=np.int8)).long()
-
-        def __len__(self):
-            return self.data.shape[0]
-
-
-    class Model(torch.nn.Module):
-        def __init__(self):
-            super(Model, self).__init__()
-            self.m = torch.nn.ModuleList([
-                torch.nn.Linear(10, 32),
-                torch.nn.Linear(32, 16),
-                torch.nn.Linear(16, 2),
-            ])
-
-        def forward(self, x):
-            for e in self.m:
-                x = e(x)
-            return x
-
 
     train_data = DataLoader(DS(X_train, y_train), batch_size=1024)
     test_data = DataLoader(DS(X_test, y_test), batch_size=1024)
 
     M = Model()
-    M.cuda()
+    # M.cuda()
     loss = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(M.parameters(), lr=0.01)
 
@@ -89,8 +86,8 @@ if __name__ == '__main__':
 
         M.train()
         for i, (data, target) in enumerate(train_data):
-            data = data.cuda()
-            target = target.cuda()
+            # data = data.cuda()
+            # target = target.cuda()
             optimizer.zero_grad()
             output = M(data)
             loss_val = loss(output, target)
@@ -101,11 +98,12 @@ if __name__ == '__main__':
                 print('epoch: ', epoch, 'iter: ', i, '/', len(train_data), 'train: ', np.mean(train_loss))
         M.eval()
         for i, (data, target) in enumerate(test_data):
-            data = data.cuda()
-            target = target.cuda()
+            # data = data.cuda()
+            # target = target.cuda()
             output = M(data)
             test_acc.append(((output.argmax(dim=1) == target).sum() / 1024).item())
             if i % 100 == 0 and i != 0:
                 print('epoch: ', epoch, 'iter: ', i, '/', len(test_data), 'Accuracy: ', np.mean(test_acc))
-            epoch_acc.append(np.max(test_acc))
+        epoch_acc.append(np.max(test_acc))
+        torch.save(M, f'model.ep{epoch}.pth')
     print(epoch_acc)
