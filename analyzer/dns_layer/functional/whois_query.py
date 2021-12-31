@@ -141,7 +141,7 @@ def _api_query(
 def whois_api_query_batch_async(
         domain_names: list,
         _n_per_query: int = 5,
-) -> tuple[list, dict[typing.Any, typing.Union[str, typing.Any]]]:
+) -> typing.Tuple[list, typing.Dict[typing.Any, typing.Union[str, typing.Any]]]:
     """
     whois批量查询的异步接口
 
