@@ -53,7 +53,7 @@ def match_first_second(first_dn, second_dn_list):
 
 
 if __name__ == '__main__':
-    pcap_folder = 'c:\\Users\\JiaweiXie\\Desktop\\dns_pcap\\1229'
+    pcap_folder = 'c:\\Users\\FH\\Desktop\\dns_pcap\\1229'
     # 预处理：步骤零：将完整的一天的数据分成五分钟一个的文件夹，总计288个
     file_list = [e for e in os.listdir(pcap_folder) if e.endswith('.pcap')]
     if file_list:
